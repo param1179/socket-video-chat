@@ -1,5 +1,6 @@
 const stream = (socket) => {
     var activeUsers = [];
+    
     socket.emit("connected", "Hello and Welcome to the Server");
 
     socket.on('join', (data) => {
