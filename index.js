@@ -9,6 +9,7 @@ let io = require('socket.io')(server, {
 let stream = require('./ws/stream');
 let path = require('path');
 let favicon = require('serve-favicon');
+const { Socket } = require('socket.io');
 require('dotenv').config();
 
 let PORT = process.env.PORT || 8000;
@@ -21,6 +22,8 @@ app.get('/', (req, res) => {
 });
 
 
-io.of('/stream').on('connection', stream);
+const Io = io.of('/stream').on('connection', (socket) =>{
+    stream(Io, socket)
+});
 
 server.listen(PORT, () => console.log('Listening on PORT', PORT));

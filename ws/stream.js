@@ -1,6 +1,9 @@
-const stream = (socket) => {
-    var activeUsers = [];
-    
+var activeUsers = [];
+var roomUsers = [];
+var likes = 0;
+const stream = (io, socket) => {
+
+
     socket.emit("connected", "Hello and Welcome to the Server");
 
     socket.on('join', (data) => {
@@ -18,7 +21,13 @@ const stream = (socket) => {
         //subscribe/join a room
         socket.join(data.room);
         socket.join(data.socketId);
-
+        const roomData = {
+            room: data.room,
+            userId: data.socketId
+        }
+        roomUsers.push(roomData);
+        console.log(roomUsers)
+        io.emit('subscribeResponse', { msg: 'room created successfully', count: roomUsers.length })
         //Inform other members in the room of new user's arrival
         if (socket.adapter.rooms.has(data.room) === true) {
             socket.to(data.room).emit('new user', { socketId: data.socketId });
@@ -53,8 +62,13 @@ const stream = (socket) => {
 
 
     socket.on('chat', (data) => {
-        socket.to(data.room).emit('chat', { sender: data.sender, msg: data.msg });
+        socket.broadcast.emit('chat', { sender: data.sender, msg: data.msg });
     });
+
+    socket.on('likes', (data) => {
+        likes= likes+1
+        io.emit('likes', likes)
+    })
 
     socket.on("disconnect", () => {
         activeUsers.splice(activeUsers.findIndex(function (i) {
