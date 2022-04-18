@@ -26,7 +26,6 @@ const stream = (io, socket) => {
             userId: data.socketId
         }
         roomUsers.push(roomData);
-        console.log(roomUsers)
         io.emit('subscribeResponse', { msg: 'room created successfully', count: roomUsers.length })
         //Inform other members in the room of new user's arrival
         if (socket.adapter.rooms.has(data.room) === true) {
