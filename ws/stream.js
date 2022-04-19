@@ -61,7 +61,7 @@ const stream = (io, socket) => {
 
 
     socket.on('chat', (data) => {
-        socket.broadcast.emit('chat', { sender: data.sender, msg: data.msg });
+        socket.to(data.room).emit('chat', { sender: data.sender, msg: data.msg });
     });
 
     socket.on('likes', (data) => {
