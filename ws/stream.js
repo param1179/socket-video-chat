@@ -83,7 +83,7 @@ const stream = (io, socket) => {
     })
 
     socket.on('room-chat', (chat) => {
-        socket.to(chat.room).emit('room-chat', { sender: chat.sender, msg: chat.msg, data: chat });
+        io.of('/stream').to(chat.room).emit('room-chat', { sender: chat.sender, msg: chat.msg, data: chat });
     });
 
     socket.on('room-likes', (room) => {
