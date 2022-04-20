@@ -17,7 +17,7 @@ const stream = (io, socket) => {
             socket.join(room.name);
             socket.join(room.socketId)
             roomsList.push(room.name)
-            socket.emit('create-room', { msg: 'Room created successfully' })
+            socket.emit('create-room', { msg: 'Room created successfully', data: room })
         } else {
             socket.emit('create-room', { msg: 'This room already exist' })
         }
@@ -31,13 +31,15 @@ const stream = (io, socket) => {
             io.of('/stream').to(room.name).emit('join-room', {
                 msg: `New user joined id: ${socket.id}`,
                 totalUsers: ids.size,
-                userId: socket.id
+                userId: socket.id,
+                data: room 
             })
         } else {
             socket.emit('join-room', {
                 msg: `This room is not exist`,
                 totalUsers: 0,
-                userId: ''
+                userId: '',
+                data: room 
             })
         }
     });
@@ -49,7 +51,8 @@ const stream = (io, socket) => {
             io.of('/stream').to(room.name).emit('leave-room', {
                 msg: `User left id: ${socket.id}`,
                 totalUsers: ids.size,
-                userId: socket.id
+                userId: socket.id,
+                data: room
             })
         } else {
             socket.emit('leave-room', { msg: 'Something went wrong' })
@@ -80,7 +83,7 @@ const stream = (io, socket) => {
     })
 
     socket.on('room-chat', (chat) => {
-        socket.to(chat.room).emit('chat', { sender: chat.sender, msg: chat.msg });
+        socket.to(chat.room).emit('room-chat', { sender: chat.sender, msg: chat.msg, data: chat });
     });
 
     socket.on('room-likes', (room) => {
@@ -94,7 +97,7 @@ const stream = (io, socket) => {
 
     socket.on('room-link', (room) => {
         if (socket.adapter.rooms.has(room.name) === true) {
-            io.of('/stream').to(room.socketId).emit('room-link', { roomName: room.name, sender: room.sender })
+            io.of('/stream').to(room.socketId).emit('room-link', { roomName: room.name, sender: room.sender, data: room })
         } else {
             socket.emit('room-link', { msg: `${room.name} not exist` })
         }
