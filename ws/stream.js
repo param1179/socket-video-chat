@@ -1,5 +1,6 @@
 let roomsList = [];
 var roomLikes = {};
+var chatCount = {};
 
 const stream = (io, socket) => {
 
@@ -27,11 +28,15 @@ const stream = (io, socket) => {
         if (socket.adapter.rooms.has(room.name) === true) {
             socket.join(room.name);
             socket.join(room.socketId)
+            chatCount[room.name] = chatCount[room.name] ? chatCount[room.name] : 0
+            roomLikes[room.name] = roomLikes[room.name] ? roomLikes[room.name] : 0
             const ids = await io.of('/stream').in(room.name).allSockets();
             io.of('/stream').to(room.name).emit('join-room', {
                 msg: `New user joined id: ${socket.id}`,
                 totalUsers: ids.size,
                 userId: socket.id,
+                msgCount: chatCount[room.name],
+                likesCount: roomLikes[room.name],
                 data: room 
             })
         } else {
@@ -48,6 +53,12 @@ const stream = (io, socket) => {
         if (socket.adapter.rooms.has(room.name) === true) {
             socket.leave(room.name);
             const ids = await io.of('/stream').in(room.name).allSockets();
+            if(ids.size === 0) {
+                var index = roomsList.indexOf(room.name)
+                roomsList.splice(index, 1)
+                delete roomLikes[room.name]
+                delete chatCount[room.name]
+            }
             io.of('/stream').to(room.name).emit('leave-room', {
                 msg: `User left id: ${socket.id}`,
                 totalUsers: ids.size,
@@ -77,13 +88,15 @@ const stream = (io, socket) => {
             var index = roomsList.indexOf(room.name)
             roomsList.splice(index, 1)
             delete roomLikes[room.name]
+            delete chatCount[room.name]
         } else {
             socket.emit('leave-room', { msg: 'room not exist' })
         }
     })
 
     socket.on('room-chat', (chat) => {
-        io.of('/stream').to(chat.room).emit('room-chat', { sender: chat.sender, msg: chat.msg, data: chat });
+        chatCount[chat.room] = chatCount[chat.room] ? chatCount[chat.room] + 1 : 1
+        io.of('/stream').to(chat.room).emit('room-chat', { sender: chat.sender, msg: chat.msg, msgCount: chatCount, data: chat });
     });
 
     socket.on('room-likes', (room) => {
