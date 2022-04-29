@@ -96,7 +96,11 @@ const stream = (io, socket) => {
 
     socket.on('room-chat', (chat) => {
         chatCount[chat.room] = chatCount[chat.room] ? chatCount[chat.room] + 1 : 1
-        io.of('/stream').to(chat.room).emit('room-chat', { sender: chat.sender, msg: chat.msg, msgCount: chatCount, data: chat });
+        io.of('/stream').to(chat.room).emit('room-chat', { sender: chat.sender, msg: chat.msg, msgCount: chatCount[chat.room], data: chat });
+    });
+
+    socket.on('send-direct-msg', (chat) => {
+        io.of('/stream').to(chat.to).emit('send-direct-msg', { sender: chat.sender, msg: chat.msg, data: chat });
     });
 
     socket.on('room-likes', (room) => {
